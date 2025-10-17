@@ -4,6 +4,12 @@ import cookieParser from "cookie-parser"
 
 //Routes
 import authRouter from "../Routes/auth.routes.js"
+import courseRouter from '../Routes/course.routes.js';
+import enrollmentRouter from '../Routes/enrollment.routes.js';
+import assignmentRouter from '../Routes/assignment.routes.js';
+import submissionRouter from '../Routes/submission.routes.js';
+import gradeRouter from '../Routes/grade.routes.js';
+import userRouter from '../Routes/user.routes.js';
 
 //middleware
 import authMiddleware from "../middlewares/authMiddleware.js"
@@ -18,7 +24,13 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors({origin :allowedOrigins ,credentials :true}))
 
 
-app.use('/api/auth',authRouter)
+app.use('/api/auth', authRouter);
+app.use('/api/courses', courseRouter);
+app.use('/api/enrollments', enrollmentRouter);
+app.use('/api/assignments', assignmentRouter);
+app.use('/api/submissions', submissionRouter);
+app.use('/api/grades', gradeRouter);
+app.use('/api/users', userRouter);
 
 app.get('/',(req,res)=>{
     res.send("Welcome to LMS Backend")

@@ -1,18 +1,21 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
+import dotenv from "dotenv"
+dotenv.config();
 
 export const register = async (req, res) => {
-  const { name,email, password,role } = req.body;
+  const { name ,email , password ,role } = req.body;
 
   if (!name || !email || !password || !role) {
     return res.json({ success: false, message: "Fill out all the details " });
   }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const existingUser = await User.findOne({ email });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
 
     if (existingUser) {
       return res.json({ success: false, message: "Email already registered " });
@@ -25,7 +28,9 @@ export const register = async (req, res) => {
       role: role,
     });
 
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+    await newUser.save();
+
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -38,7 +43,7 @@ export const register = async (req, res) => {
 
     res.json({ success: true, message: " registered successfully" });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.json({ success: false, message: `From auth : ${error.message}` });
   }
 };
 
@@ -66,7 +71,7 @@ export const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: existingUser._id },
+      { userId: existingUser._id },
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",

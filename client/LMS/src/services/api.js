@@ -1,0 +1,116 @@
+import axios from 'axios';
+
+// Create axios instance with base URL and headers
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api', // Update this with your backend API URL
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add a request interceptor to include the auth token in requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// API functions for authentication
+export const authAPI = {
+  login: (email, password) => 
+    api.post('/auth/login', { email, password }),
+  
+  register: (userData) => 
+    api.post('/auth/register', userData),
+  
+  getCurrentUser: () => 
+    api.get('/auth/me'),
+};
+
+// API functions for courses
+export const coursesAPI = {
+  getAllCourses: () => 
+    api.get('/courses'),
+    
+  getCourseById: (id) => 
+    api.get(`/courses/${id}`),
+    
+  createCourse: (courseData) => 
+    api.post('/courses', courseData),
+    
+  updateCourse: (id, courseData) => 
+    api.put(`/courses/${id}`, courseData),
+    
+  deleteCourse: (id) => 
+    api.delete(`/courses/${id}`),
+    
+  enrollInCourse: (courseId) => 
+    api.post(`/courses/${courseId}/enroll`),
+    
+  getEnrolledCourses: () => 
+    api.get('/me/courses'),
+};
+
+// API functions for assignments
+export const assignmentsAPI = {
+  getAssignments: (courseId) => 
+    courseId 
+      ? api.get(`/assignments?courseId=${courseId}`)
+      : api.get('/assignments'),
+    
+  getAssignmentById: (id) => 
+    api.get(`/assignments/${id}`),
+    
+  createAssignment: (assignmentData) => 
+    api.post('/assignments', assignmentData),
+    
+  updateAssignment: (id, assignmentData) => 
+    api.put(`/assignments/${id}`, assignmentData),
+    
+  deleteAssignment: (id) => 
+    api.delete(`/assignments/${id}`),
+    
+  submitAssignment: (id, submissionData) => 
+    api.post(`/assignments/${id}/submit`, submissionData),
+};
+
+// API functions for grades
+export const gradesAPI = {
+  getGrades: (courseId) => 
+    courseId 
+      ? api.get(`/grades?courseId=${courseId}`)
+      : api.get('/grades'),
+    
+  getGradeForAssignment: (assignmentId) => 
+    api.get(`/grades/assignments/${assignmentId}`),
+    
+  submitGrade: (submissionId, gradeData) => 
+    api.post(`/grades/submissions/${submissionId}`, gradeData),
+};
+
+// API functions for forum
+export const forumAPI = {
+  getThreads: (courseId) => 
+    api.get(`/forum/threads?courseId=${courseId}`),
+    
+  getThread: (threadId) => 
+    api.get(`/forum/threads/${threadId}`),
+    
+  createThread: (threadData) => 
+    api.post('/forum/threads', threadData),
+    
+  replyToThread: (threadId, replyData) => 
+    api.post(`/forum/threads/${threadId}/replies`, replyData),
+    
+  deleteThread: (threadId) => 
+    api.delete(`/forum/threads/${threadId}`),
+};
+
+export default api;

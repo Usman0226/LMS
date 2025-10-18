@@ -71,7 +71,7 @@ export default function Register() {
     }
   };
 
-  const tabBase = 'px-4 py-2 text-sm font-semibold rounded-lg transition';
+  const tabBase = 'px-4 py-2 text-sm font-semibold rounded-full transition';
   const tabActive = 'bg-primary-500 text-white shadow-lg shadow-primary-500/30';
   const tabInactive = 'text-slate-500 hover:text-primary-500';
 

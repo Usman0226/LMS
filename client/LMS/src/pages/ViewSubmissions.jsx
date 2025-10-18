@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { assignmentsAPI, gradesAPI } from '../services/api';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function ViewSubmissions() {
@@ -15,41 +16,22 @@ export default function ViewSubmissions() {
     feedback: ''
   });
 
-  useEffect(() => {
+  useEffect(() => {   
     const fetchSubmissions = async () => {
       try {
         setLoading(true);
         setError('');
 
-        // For now, using mock data
-        // In real implementation: const response = await assignmentsAPI.getSubmissions(courseId);
+        console.log('Fetching submissions for course:', courseId);
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Mock submissions data
-        setSubmissions([
-          {
-            _id: '1',
-            student: { name: 'Alice Johnson', email: 'alice@example.com' },
-            assignment: { title: 'Introduction to React', description: 'Build a simple React component' },
-            submissionText: 'I have completed the React assignment. Here is my implementation of a todo list component with state management.',
-            submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            status: 'submitted',
-            grade: null
-          },
-          {
-            _id: '2',
-            student: { name: 'Bob Smith', email: 'bob@example.com' },
-            assignment: { title: 'JavaScript Fundamentals', description: 'Complete the JavaScript exercises' },
-            submissionText: 'Here is my JavaScript assignment submission. I implemented all the required functions and tested them.',
-            submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-            status: 'submitted',
-            grade: null
-          }
-        ]);
+        // Call API to get submissions
+        const response = await assignmentsAPI.getSubmissions(courseId);
+        setSubmissions(response.data.data || []);
       } catch (error) {
         console.error('Error fetching submissions:', error);
-        setError('Failed to load submissions. Please try again.');
+        setError(error.response?.data?.message || 'Failed to load submissions. Please try again.');
+        // Set empty array on error
+        setSubmissions([]);
       } finally {
         setLoading(false);
       }
@@ -65,17 +47,16 @@ export default function ViewSubmissions() {
 
     try {
       const gradeData = {
-        submissionId,
         score: parseFloat(gradeForm.score),
         feedback: gradeForm.feedback,
         gradedBy: currentUser._id,
         gradedAt: new Date().toISOString()
       };
 
-      // For now, simulate API call
-      // In real implementation: await gradesAPI.submitGrade(submissionId, gradeData);
-
       console.log('Submitting grade:', gradeData);
+
+      // Call API to submit grade
+      await gradesAPI.submitGrade(submissionId, gradeData);
 
       // Update local state
       setSubmissions(prev => prev.map(sub =>
@@ -87,9 +68,12 @@ export default function ViewSubmissions() {
       // Reset form
       setGradeForm({ score: '', feedback: '' });
       setSelectedSubmission(null);
+      
+      // Show success message
+      alert('Grade submitted successfully!');
     } catch (error) {
       console.error('Error submitting grade:', error);
-      setError('Failed to submit grade. Please try again.');
+      setError(error.response?.data?.message || 'Failed to submit grade. Please try again.');
     }
   };
 

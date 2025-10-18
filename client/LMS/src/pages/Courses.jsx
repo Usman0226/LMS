@@ -201,20 +201,8 @@ export default function Courses() {
         return;
       }
 
-      // Temporarily disable API call for debugging
-      console.log('Enrollment API call disabled for debugging');
+      console.log('Enrolling in course:', courseId);
 
-      // For debugging, just update the local state
-      setCourses(courses.map(course =>
-        course.id === courseId || course._id === courseId
-          ? { ...course, isEnrolled: true, status: 'Enrolled' }
-          : course
-      ));
-
-      alert('Successfully enrolled in course!');
-
-      // Uncomment below to re-enable API call
-      /*
       // Call API to enroll
       await coursesAPI.enrollInCourse(courseId);
 
@@ -225,11 +213,10 @@ export default function Courses() {
           : course
       ));
 
-      alert('Successfully enrolled in course!');
-      */
+      alert('Successfully enrolled in course! Check "My Courses" to view your enrolled courses.');
     } catch (error) {
       console.error('Error enrolling in course:', error);
-      alert('Failed to enroll in course. Please try again.');
+      alert(error.response?.data?.message || 'Failed to enroll in course. Please try again.');
     }
   };
 
@@ -371,36 +358,12 @@ export default function Courses() {
       ) : filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
-            <div key={course.id} className="relative">
-              <CourseCard course={course} />
-              {!course.isEnrolled && !isTeacher && (
-                <button
-                  onClick={() => handleEnroll(course.id)}
-                  className="absolute bottom-4 right-4 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                >
-                  Enroll Now
-                </button>
-              )}
-              {course.isEnrolled && !isTeacher && (
-                <span className="absolute bottom-4 right-4 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  Enrolled
-                </span>
-              )}
-              {isTeacher && (
-                <div className="absolute top-4 right-4 flex space-x-2">
-                  <button className="p-1.5 rounded-full bg-white text-gray-500 hover:bg-gray-100">
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button className="p-1.5 rounded-full bg-white text-gray-500 hover:bg-red-100 hover:text-red-600">
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </div>
+            <CourseCard 
+              key={course.id} 
+              course={course} 
+              onEnroll={handleEnroll}
+              isStudent={!isTeacher}
+            />
           ))}
         </div>
       ) : (

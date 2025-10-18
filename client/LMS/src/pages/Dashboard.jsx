@@ -232,7 +232,7 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {isTeacher ? [
+        {(isTeacher ? [
           {
             name: 'Courses Created',
             value: '3',
@@ -290,7 +290,7 @@ export default function Dashboard() {
             icon: '📊',
             color: 'bg-purple-100 text-purple-800',
           },
-        ].map((stat, index) => (
+        ]).map((stat, index) => (
           <div key={index} className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">

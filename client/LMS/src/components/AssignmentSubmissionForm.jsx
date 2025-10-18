@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { assignmentsAPI } from '../services/api';
 
 export default function AssignmentSubmissionForm({ assignment, onSubmissionComplete, onClose }) {
   const { currentUser } = useAuth();
@@ -51,27 +52,22 @@ export default function AssignmentSubmissionForm({ assignment, onSubmissionCompl
 
     try {
       const submissionData = {
-        assignmentId: assignment._id,
+        assignmentId: assignment._id || assignment.id,
         submissionText: formData.submissionText.trim(),
         submittedAt: new Date().toISOString()
       };
 
-      // For now, we'll simulate API call success
-      // In real implementation: await assignmentsAPI.submitAssignment(assignment._id, submissionData);
-
       console.log('Submitting assignment:', submissionData);
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call API to submit assignment
+      const response = await assignmentsAPI.submitAssignment(assignment._id || assignment.id, submissionData);
+      
+      // Get the submission from response
+      const submission = response.data.data;
 
       // Call completion callback
       if (onSubmissionComplete) {
-        onSubmissionComplete({
-          _id: Date.now().toString(),
-          ...submissionData,
-          student: currentUser,
-          status: 'submitted'
-        });
+        onSubmissionComplete(submission);
       }
 
       // Reset form
@@ -83,7 +79,7 @@ export default function AssignmentSubmissionForm({ assignment, onSubmissionCompl
       if (onClose) onClose();
     } catch (error) {
       console.error('Error submitting assignment:', error);
-      setError('Failed to submit assignment. Please try again.');
+      setError(error.response?.data?.message || 'Failed to submit assignment. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { assignmentsAPI } from '../services/api';
 
 export default function AssignmentForm({ courseId, onAssignmentCreated, onClose }) {
   const { currentUser } = useAuth();
@@ -39,21 +40,17 @@ export default function AssignmentForm({ courseId, onAssignmentCreated, onClose 
         dueDate: new Date(formData.dueDate).toISOString()
       };
 
-      // For now, we'll simulate API call success
-      // In real implementation: await assignmentsAPI.createAssignment(assignmentData);
-
       console.log('Creating assignment:', assignmentData);
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call API to create assignment
+      const response = await assignmentsAPI.createAssignment(assignmentData);
+      
+      // Get the created assignment from response
+      const createdAssignment = response.data.data;
 
-      // For now, just call the callback with mock data
+      // Call the callback with created assignment
       if (onAssignmentCreated) {
-        onAssignmentCreated({
-          _id: Date.now().toString(),
-          ...assignmentData,
-          createdAt: new Date().toISOString()
-        });
+        onAssignmentCreated(createdAssignment);
       }
 
       // Reset form
@@ -68,7 +65,7 @@ export default function AssignmentForm({ courseId, onAssignmentCreated, onClose 
       if (onClose) onClose();
     } catch (error) {
       console.error('Error creating assignment:', error);
-      setError('Failed to create assignment. Please try again.');
+      setError(error.response?.data?.message || 'Failed to create assignment. Please try again.');
     } finally {
       setLoading(false);
     }

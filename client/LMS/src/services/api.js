@@ -79,6 +79,12 @@ export const assignmentsAPI = {
   
   submitAssignment: (id, submissionData) =>
     api.post(`/submissions/submit-assign`, submissionData),
+  
+  getSubmissions: (courseId) =>
+    api.get(`/submissions/course/${courseId}`),
+  
+  getSubmissionById: (id) =>
+    api.get(`/submissions/${id}`),
 };
 
 // API functions for grades

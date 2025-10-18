@@ -3,6 +3,8 @@
 
 import Enrollment from '../models/enrollment.model.js';
 import Course from "../models/course.model.js"
+// Email service
+import sendEmail  from "../services/emailService.js"
 
 // ENROLL IN COURSE (Student)
 export const enrollCourse = async (req, res) => {
@@ -14,6 +16,20 @@ export const enrollCourse = async (req, res) => {
     if (exists) return res.status(400).json({ success: false, message: "Already enrolled" });
 
     const enroll = await Enrollment.create({ student: req.user._id, course: courseId });
+
+    // Send welcome email to student
+    try {
+      const course = await Course.findById(courseId).populate('teacher', 'name');
+      await sendEmail(req.user.email, 'courseEnrollment', {
+        course: course,
+        student: req.user
+      });
+      console.log(`Enrollment notification sent to ${req.user.email}`);
+    } catch (emailError) {
+      console.error('Failed to send enrollment notification:', emailError);
+      // Don't fail the enrollment if email fails
+    }
+
     res.status(201).json({ success: true, message: "Enrolled successfully", data: enroll });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

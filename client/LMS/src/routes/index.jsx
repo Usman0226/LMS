@@ -33,20 +33,15 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Dashboard - accessible without login, but actions require auth */}
+        <Route path="/dashboard" element={<Dashboard />} />
+
         {/* Protected routes */}
         <Route
           path="/"
           element={
             <ProtectedRoute>
               <Navigate to="/dashboard" replace />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
             </ProtectedRoute>
           }
         />

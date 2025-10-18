@@ -27,55 +27,58 @@ export const authAPI = {
   register: (userData) => 
     api.post('/auth/register', userData),
   
-  getCurrentUser: () => 
+  getCurrentUser: () =>
     api.get('/auth/me'),
 };
 
 // API functions for courses
 export const coursesAPI = {
-  getAllCourses: () => 
-    api.get('/courses'),
-    
-  getCourseById: (id) => 
+  getAllCourses: () =>
+    api.get('/courses/getCourses'),
+  
+  getCourseById: (id) =>
     api.get(`/courses/${id}`),
-    
-  createCourse: (courseData) => 
-    api.post('/courses', courseData),
-    
-  updateCourse: (id, courseData) => 
+  
+  createCourse: (courseData) =>
+    api.post('/courses/create', courseData),
+  
+  updateCourse: (id, courseData) =>
     api.put(`/courses/${id}`, courseData),
-    
-  deleteCourse: (id) => 
+  
+  deleteCourse: (id) =>
     api.delete(`/courses/${id}`),
-    
-  enrollInCourse: (courseId) => 
-    api.post(`/courses/${courseId}/enroll`),
-    
-  getEnrolledCourses: () => 
-    api.get('/me/courses'),
+  
+  enrollInCourse: (courseId) =>
+    api.post(`/enrollments/enroll`, { courseId }),
+  
+  getEnrolledCourses: () =>
+    api.get('/enrollments/my-courses'),
+  
+  getEnrolledStudents: (courseId) =>
+    api.get(`/enrollments/${courseId}/students`),
 };
 
 // API functions for assignments
 export const assignmentsAPI = {
-  getAssignments: (courseId) => 
-    courseId 
-      ? api.get(`/assignments?courseId=${courseId}`)
+  getAssignments: (courseId) =>
+    courseId
+      ? api.get(`/assignments/${courseId}`)
       : api.get('/assignments'),
-    
-  getAssignmentById: (id) => 
+  
+  getAssignmentById: (id) =>
     api.get(`/assignments/${id}`),
-    
-  createAssignment: (assignmentData) => 
-    api.post('/assignments', assignmentData),
-    
-  updateAssignment: (id, assignmentData) => 
+  
+  createAssignment: (assignmentData) =>
+    api.post('/assignments/create', assignmentData),
+  
+  updateAssignment: (id, assignmentData) =>
     api.put(`/assignments/${id}`, assignmentData),
-    
-  deleteAssignment: (id) => 
+  
+  deleteAssignment: (id) =>
     api.delete(`/assignments/${id}`),
-    
-  submitAssignment: (id, submissionData) => 
-    api.post(`/assignments/${id}/submit`, submissionData),
+  
+  submitAssignment: (id, submissionData) =>
+    api.post(`/submissions/submit-assign`, submissionData),
 };
 
 // API functions for grades

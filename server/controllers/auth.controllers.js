@@ -41,7 +41,7 @@ export const register = async (req, res) => {
       maxAge: 7 * 24 * 3600 * 1000,
     });
 
-    res.json({ success: true, message: " registered successfully" });
+    res.json({ success: true, message: " registered successfully", data: newUser });
   } catch (error) {
     res.json({ success: false, message: `From auth : ${error.message}` });
   }
@@ -85,9 +85,9 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 3600 * 1000,
     });
 
-    res.json({ success: true, message: "Login successfull" });
+    res.json({ success: true, message: "Login successfull", data: { user: existingUser } });
   } catch (error) {
-    res.json({ success: false, message: "Invalid Password" });
+    res.json({ success: false, message: "Login failed" });
   }
 };
 

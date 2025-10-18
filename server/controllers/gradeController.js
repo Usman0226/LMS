@@ -3,6 +3,8 @@
 
 import Grade from "../models/grade.model.js"
 import Submission from "../models/submission.model.js"
+// Email service
+import  sendEmail  from "../services/emailService.js"
 
 // GRADE A SUBMISSION (Teacher)
 export const gradeSubmission = async (req, res) => {
@@ -17,6 +19,23 @@ export const gradeSubmission = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not your course" });
 
     const grade = await Grade.create({ submission: submissionId, student: submission.student, marks, feedback });
+
+    // Send email notification to student about the grade
+    try {
+      const student = await (await import("../models/user.model.js")).default.findById(submission.student);
+      if (student && student.email) {
+        await sendEmail(student.email, 'gradeNotification', {
+          marks,
+          feedback,
+          assignment: submission.assignment,
+          course: submission.assignment.course
+        });
+        console.log(`Grade notification sent to ${student.email}`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send grade notification:', emailError);
+    }
+
     res.status(201).json({ success: true, message: "Grade submitted successfully", data: grade });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

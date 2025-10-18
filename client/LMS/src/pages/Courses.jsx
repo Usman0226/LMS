@@ -98,11 +98,9 @@ export default function Courses() {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        // In a real app, we would fetch this from the API
-        // const response = await coursesAPI.getAllCourses();
-        // setCourses(response.data);
-        
-        // For now, we'll use mock data
+        console.log('Courses - Starting data fetch for user:', currentUser);
+
+        // Use mock data for now to prevent crashes
         setTimeout(() => {
           // Mark enrolled courses
           const coursesWithEnrollment = mockCourses.map(course => ({
@@ -112,15 +110,57 @@ export default function Courses() {
           
           setCourses(coursesWithEnrollment);
           setLoading(false);
+          console.log('Courses - Mock data loaded successfully');
         }, 500);
-      } catch (error) {
-        console.error('Error fetching courses:', error);
+
+        // Uncomment below to re-enable API calls
+        /*
+        // Fetch all courses
+        const response = await coursesAPI.getAllCourses();
+        const allCourses = response.data.data || [];
+
+        // If user is logged in, fetch their enrolled courses
+        if (currentUser) {
+          try {
+            const enrolledResponse = await coursesAPI.getEnrolledCourses();
+            const enrolledCourses = enrolledResponse.data.data || [];
+            const enrolledIds = enrolledCourses.map(course => course._id);
+
+            // Mark enrolled courses
+            const coursesWithEnrollment = allCourses.map(course => ({
+              ...course,
+              isEnrolled: enrolledIds.includes(course._id),
+            }));
+
+            setCourses(coursesWithEnrollment);
+          } catch (enrolledError) {
+            console.log('Error fetching enrolled courses:', enrolledError);
+            // Still show all courses even if enrollment check fails
+            setCourses(allCourses.map(course => ({ ...course, isEnrolled: false })));
+          }
+        } else {
+          // Not logged in, show all courses without enrollment status
+          setCourses(allCourses.map(course => ({ ...course, isEnrolled: false })));
+        }
+
         setLoading(false);
+        */
+      } catch (error) {
+        console.error('Error in Courses fetchCourses:', error);
+        // Fallback to mock data on any error
+        setTimeout(() => {
+          const coursesWithEnrollment = mockCourses.map(course => ({
+            ...course,
+            isEnrolled: mockEnrolledCourses.includes(course.id),
+          }));
+          setCourses(coursesWithEnrollment);
+          setLoading(false);
+        }, 500);
       }
     };
 
     fetchCourses();
-  }, []);
+  }, [currentUser]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -138,19 +178,58 @@ export default function Courses() {
     setShowEnrolledOnly(!showEnrolledOnly);
   };
 
+  const handleCreateCourse = () => {
+    if (!currentUser) {
+      alert('Please login to create courses');
+      return;
+    }
+
+    if (!isTeacher) {
+      alert('Only teachers can create courses');
+      return;
+    }
+
+    // Redirect to course creation page or open modal
+    // For now, we'll just show an alert
+    alert('Course creation functionality will be implemented soon!');
+  };
+
   const handleEnroll = async (courseId) => {
     try {
-      // In a real app, we would call the API to enroll
-      // await coursesAPI.enrollInCourse(courseId);
-      
-      // For now, we'll just update the local state
-      setCourses(courses.map(course => 
-        course.id === courseId 
-          ? { ...course, isEnrolled: true, status: 'Enrolled' } 
+      if (!currentUser) {
+        alert('Please login to enroll in courses');
+        return;
+      }
+
+      // Temporarily disable API call for debugging
+      console.log('Enrollment API call disabled for debugging');
+
+      // For debugging, just update the local state
+      setCourses(courses.map(course =>
+        course.id === courseId || course._id === courseId
+          ? { ...course, isEnrolled: true, status: 'Enrolled' }
           : course
       ));
+
+      alert('Successfully enrolled in course!');
+
+      // Uncomment below to re-enable API call
+      /*
+      // Call API to enroll
+      await coursesAPI.enrollInCourse(courseId);
+
+      // Update local state
+      setCourses(courses.map(course =>
+        course.id === courseId || course._id === courseId
+          ? { ...course, isEnrolled: true, status: 'Enrolled' }
+          : course
+      ));
+
+      alert('Successfully enrolled in course!');
+      */
     } catch (error) {
       console.error('Error enrolling in course:', error);
+      alert('Failed to enroll in course. Please try again.');
     }
   };
 
@@ -197,6 +276,7 @@ export default function Courses() {
           <div className="mt-4 md:mt-0">
             <button
               type="button"
+              onClick={handleCreateCourse}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               Create New Course

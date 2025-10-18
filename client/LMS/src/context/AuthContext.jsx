@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
+// Backend URL - change this to your production URL when deploying
+const BACKEND_URL = 'http://localhost:3000';
+
 const AuthContext = createContext();
 
 export function useAuth() {
@@ -11,55 +14,86 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (user) {
-      setCurrentUser(user);
+    // Check if user is logged in by checking for token in cookies
+    const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+    if (token) {
+      // Token exists, user might be logged in
+      // We'll verify this on API calls that require authentication
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      if (user) {
+        setCurrentUser(user);
+      }
     }
     setLoading(false);
   }, []);
 
-  // Mock login function - replace with actual API call
+  // API call to login
   const login = async (email, password) => {
-    // In a real app, this would be an API call to your backend
-    // For demo purposes, we'll use mock data
-    const mockUsers = [
-      { id: 1, name: 'Student User', email: 'student@example.com', role: 'student', token: 'mock-jwt-token' },
-      { id: 2, name: 'Teacher User', email: 'teacher@example.com', role: 'teacher', token: 'mock-jwt-token' },
-    ];
+    try {
+      console.log('Attempting login for:', email);
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Important: includes cookies in the request
+        body: JSON.stringify({ email, password }),
+      });
 
-    const user = mockUsers.find(u => u.email === email && u.role === (email.includes('teacher') ? 'teacher' : 'student'));
-    
-    if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      localStorage.setItem('token', user.token);
-      setCurrentUser(user);
-      return { success: true, user };
+      const data = await response.json();
+      console.log('Login response:', data);
+
+      if (data.success) {
+        // Store user data in localStorage for easy access
+        localStorage.setItem('currentUser', JSON.stringify(data.data.user));
+        setCurrentUser(data.data.user);
+        console.log('Login successful, user set:', data.data.user);
+        return { success: true, user: data.data.user };
+      } else {
+        console.log('Login failed:', data.message);
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, message: 'Network error. Please check if the backend server is running.' };
     }
-    
-    return { success: false, message: 'Invalid credentials' };
   };
 
-  // Mock register function
+  // API call to register
   const register = async (userData) => {
-    // In a real app, this would be an API call to your backend
-    // For demo purposes, we'll just log the data and auto-login
-    const newUser = {
-      id: Math.floor(Math.random() * 1000),
-      ...userData,
-      token: 'mock-jwt-token'
-    };
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
 
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-    localStorage.setItem('token', newUser.token);
-    setCurrentUser(newUser);
-    
-    return { success: true, user: newUser };
+      const data = await response.json();
+
+      if (data.success) {
+        // Store user data in localStorage for easy access
+        localStorage.setItem('currentUser', JSON.stringify(data.data));
+        setCurrentUser(data.data);
+        return { success: true, user: data.data };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { success: false, message: 'Network error. Please try again.' };
+    }
   };
 
   const logout = () => {
+    // Call logout API to clear server-side session
+    fetch(`${BACKEND_URL}/api/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(console.error);
+
     localStorage.removeItem('currentUser');
-    localStorage.removeItem('token');
     setCurrentUser(null);
   };
 

@@ -7,7 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
-import CourseDetail from './pages/CourseDetail';
+import CourseDetail from './pages/CourseDetailPage';
 import CreateCourse from './pages/CreateCourse';
 import MyCourses from './pages/MyCourses';
 import ViewSubmissions from './pages/ViewSubmissions';

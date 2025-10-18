@@ -22,7 +22,7 @@ const Layout = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, currentUser } = useAuth();
+  const { logout, currentUser, isAuthenticated } = useAuth();
 
   const userInitial = currentUser?.name?.[0]?.toUpperCase() ?? currentUser?.email?.[0]?.toUpperCase() ?? 'U';
 
@@ -71,6 +71,16 @@ const Layout = ({ children }) => {
     </Box>
   );
 
+  // If user is not logged in, render children without navigation
+  if (!isAuthenticated) {
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        {children}
+      </Box>
+    );
+  }
+
+  // Render full layout with navigation for authenticated users
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar

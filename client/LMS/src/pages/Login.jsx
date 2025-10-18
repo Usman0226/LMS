@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // Correctly imports the hook
 
-const tabBase = 'px-4 py-2 text-sm font-semibold rounded-lg transition';
+
+const tabBase = 'px-4 py-2 text-sm font-semibold rounded-full transition';
 const tabActive = 'bg-primary-500 text-white shadow-lg shadow-primary-500/30';
 const tabInactive = 'text-slate-500 hover:text-primary-500';
 

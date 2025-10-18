@@ -73,6 +73,17 @@ export default function Assignments() {
     file: null,
     submitting: false,
   });
+  const [createAssignmentModal, setCreateAssignmentModal] = useState({
+    isOpen: false,
+    saving: false,
+    error: '',
+    form: {
+      title: '',
+      description: '',
+      dueDate: '',
+      courseName: '',
+    },
+  });
 
   const isTeacher = currentUser?.role === 'teacher';
 
@@ -173,6 +184,86 @@ export default function Assignments() {
   // Get unique course names for the filter dropdown
   const courses = [...new Set(assignments.map(a => a.courseName))];
 
+  const resetCreateAssignmentModal = () => {
+    setCreateAssignmentModal({
+      isOpen: false,
+      saving: false,
+      error: '',
+      form: {
+        title: '',
+        description: '',
+        dueDate: '',
+        courseName: '',
+      },
+    });
+  };
+
+  const openCreateAssignmentModal = () => {
+    const defaultCourse = selectedCourse === 'all'
+      ? ''
+      : (courses.find(course => course.includes(selectedCourse)) || '');
+    setCreateAssignmentModal({
+      isOpen: true,
+      saving: false,
+      error: '',
+      form: {
+        title: '',
+        description: '',
+        dueDate: '',
+        courseName: defaultCourse,
+      },
+    });
+  };
+
+  const handleCreateAssignmentInputChange = (field, value) => {
+    setCreateAssignmentModal(prev => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleCreateAssignmentSubmit = async (e) => {
+    e.preventDefault();
+    const { title, description, dueDate, courseName } = createAssignmentModal.form;
+    if (!title || !description || !dueDate) {
+      setCreateAssignmentModal(prev => ({
+        ...prev,
+        error: 'Please fill in all required fields.',
+      }));
+      return;
+    }
+
+    setCreateAssignmentModal(prev => ({
+      ...prev,
+      saving: true,
+      error: '',
+    }));
+
+    const newAssignment = {
+      id: Date.now(),
+      title,
+      courseName: courseName || 'General',
+      description,
+      dueDate: new Date(dueDate).toISOString(),
+      submitted: false,
+      submission: null,
+    };
+
+    try {
+      setAssignments(prev => [newAssignment, ...prev]);
+      resetCreateAssignmentModal();
+    } catch (error) {
+      setCreateAssignmentModal(prev => ({
+        ...prev,
+        saving: false,
+        error: 'Failed to create assignment. Please try again.',
+      }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -199,6 +290,7 @@ export default function Assignments() {
           <div className="mt-4 md:mt-0">
             <button
               type="button"
+              onClick={openCreateAssignmentModal}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               Create New Assignment
@@ -483,6 +575,137 @@ export default function Assignments() {
                     Close
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {createAssignmentModal.isOpen && (
+        <div className="fixed z-20 inset-0 overflow-y-auto" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              aria-hidden="true"
+              onClick={resetCreateAssignmentModal}
+            ></div>
+
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-lg leading-6 font-medium text-gray-900" id="create-assignment-title">
+                          Create New Assignment
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Provide assignment details and choose a course to add it to your list.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-gray-400 hover:text-gray-600"
+                        onClick={resetCreateAssignmentModal}
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {createAssignmentModal.error && (
+                      <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {createAssignmentModal.error}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleCreateAssignmentSubmit} className="mt-6 space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700" htmlFor="create-assignment-title-input">
+                          Title *
+                        </label>
+                        <input
+                          id="create-assignment-title-input"
+                          type="text"
+                          value={createAssignmentModal.form.title}
+                          onChange={(e) => handleCreateAssignmentInputChange('title', e.target.value)}
+                          required
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="Enter assignment title"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700" htmlFor="create-assignment-course-input">
+                          Course
+                        </label>
+                        <input
+                          id="create-assignment-course-input"
+                          type="text"
+                          list="assignment-course-options"
+                          value={createAssignmentModal.form.courseName}
+                          onChange={(e) => handleCreateAssignmentInputChange('courseName', e.target.value)}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="Course name (e.g., CS101 - Intro to CS)"
+                        />
+                        <datalist id="assignment-course-options">
+                          {courses.map(course => (
+                            <option key={course} value={course} />
+                          ))}
+                        </datalist>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700" htmlFor="create-assignment-due-input">
+                          Due Date *
+                        </label>
+                        <input
+                          id="create-assignment-due-input"
+                          type="datetime-local"
+                          value={createAssignmentModal.form.dueDate}
+                          onChange={(e) => handleCreateAssignmentInputChange('dueDate', e.target.value)}
+                          required
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700" htmlFor="create-assignment-description-input">
+                          Description *
+                        </label>
+                        <textarea
+                          id="create-assignment-description-input"
+                          rows={4}
+                          value={createAssignmentModal.form.description}
+                          onChange={(e) => handleCreateAssignmentInputChange('description', e.target.value)}
+                          required
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="Describe the assignment requirements"
+                        />
+                      </div>
+
+                      <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                          type="button"
+                          onClick={resetCreateAssignmentModal}
+                          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={createAssignmentModal.saving}
+                          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                        >
+                          {createAssignmentModal.saving ? 'Saving...' : 'Create Assignment'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

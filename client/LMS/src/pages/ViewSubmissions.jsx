@@ -11,6 +11,8 @@ export default function ViewSubmissions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [plagiarismDetails, setPlagiarismDetails] = useState(null);
+  const [recheckLoadingId, setRecheckLoadingId] = useState(null);
   const [gradeForm, setGradeForm] = useState({
     score: '',
     feedback: ''
@@ -90,6 +92,55 @@ export default function ViewSubmissions() {
     setGradeForm({ score: '', feedback: '' });
   };
 
+  const openPlagiarismModal = (submission) => {
+    setPlagiarismDetails(submission);
+  };
+
+  const closePlagiarismModal = () => {
+    setPlagiarismDetails(null);
+  };
+
+  const handleRecheck = async (submissionId) => {
+    try {
+      setRecheckLoadingId(submissionId);
+      await assignmentsAPI.recheckPlagiarism(submissionId);
+      setSubmissions(prev => prev.map(sub =>
+        sub._id === submissionId
+          ? {
+              ...sub,
+              plagiarismStatus: 'pending',
+              similarityScore: 0,
+              plagiarismReport: null
+            }
+          : sub
+      ));
+    } catch (error) {
+      console.error('Error rechecking plagiarism:', error);
+      setError(error.response?.data?.message || 'Failed to re-run plagiarism analysis.');
+    } finally {
+      setRecheckLoadingId(null);
+    }
+  };
+
+  const getPlagiarismBadgeClass = (status) => {
+    switch (status) {
+      case 'clear':
+        return 'bg-green-100 text-green-800';
+      case 'warning':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'flagged':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const canRecheck = (submission) => {
+    if (!currentUser) return false;
+    if (currentUser.role === 'teacher') return true;
+    return submission.student._id === currentUser._id;
+  };
+
   return (
     <ProtectedRoute role="teacher">
       <div className="min-h-screen bg-gray-50 py-8">
@@ -139,6 +190,9 @@ export default function ViewSubmissions() {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Plagiarism
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Grade
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -169,6 +223,37 @@ export default function ViewSubmissions() {
                         {new Date(submission.submittedAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPlagiarismBadgeClass(submission.plagiarismStatus)}`}
+                          >
+                            {submission.plagiarismStatus ? submission.plagiarismStatus.toUpperCase() : 'PENDING'}
+                          </span>
+                          {typeof submission.similarityScore === 'number' && submission.similarityScore > 0 && (
+                            <div className="text-xs text-gray-500">Similarity: {submission.similarityScore}%</div>
+                          )}
+                          <div className="flex items-center gap-3 text-xs">
+                            {submission.plagiarismReport && (
+                              <button
+                                onClick={() => openPlagiarismModal(submission)}
+                                className="text-primary-600 hover:text-primary-800"
+                              >
+                                View report
+                              </button>
+                            )}
+                            {canRecheck(submission) && (
+                              <button
+                                onClick={() => handleRecheck(submission._id)}
+                                className="text-gray-600 hover:text-gray-800"
+                                disabled={recheckLoadingId === submission._id}
+                              >
+                                {recheckLoadingId === submission._id ? 'Rechecking...' : 'Re-check'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           submission.status === 'graded'
                             ? 'bg-green-100 text-green-800'
@@ -181,12 +266,24 @@ export default function ViewSubmissions() {
                         {submission.grade ? `${submission.grade.score}/100` : 'Not graded'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => openGradingModal(submission)}
-                          className="text-primary-600 hover:text-primary-900"
-                        >
-                          {submission.grade ? 'Update Grade' : 'Grade'}
-                        </button>
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => openGradingModal(submission)}
+                            className="text-primary-600 hover:text-primary-900"
+                          >
+                            {submission.grade ? 'Update Grade' : 'Grade'}
+                          </button>
+                          {submission.fileURL && (
+                            <a
+                              href={submission.fileURL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-gray-500 hover:text-gray-700"
+                            >
+                              Download file
+                            </a>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -281,6 +378,48 @@ export default function ViewSubmissions() {
                       </button>
                     </div>
                   </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Plagiarism Detail Modal */}
+          {plagiarismDetails && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+              <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">Plagiarism Report</h3>
+                  <button onClick={closePlagiarismModal} className="text-gray-400 hover:text-gray-600">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Status: <span className="font-medium text-gray-800">{plagiarismDetails.plagiarismStatus?.toUpperCase() || 'PENDING'}</span></p>
+                    <p className="text-sm text-gray-600">Similarity Score: <span className="font-medium text-gray-800">{plagiarismDetails.similarityScore ?? 0}%</span></p>
+                    {plagiarismDetails.plagiarismReport?.checkedAt && (
+                      <p className="text-xs text-gray-500">Last checked: {new Date(plagiarismDetails.plagiarismReport.checkedAt).toLocaleString()}</p>
+                    )}
+                  </div>
+                  {plagiarismDetails.plagiarismReport?.matches?.length ? (
+                    <div>
+                      <h4 className="font-medium text-gray-700 mb-2">Matches</h4>
+                      <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
+                        {plagiarismDetails.plagiarismReport.matches.map((match, index) => (
+                          <li key={index}>
+                            <span className="font-medium text-gray-800">{match.source}:</span> {match.similarity}% similarity
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No detailed matches available yet.</p>
+                  )}
+                  {plagiarismDetails.plagiarismReport?.notes && (
+                    <p className="text-sm text-gray-600">Notes: {plagiarismDetails.plagiarismReport.notes}</p>
+                  )}
                 </div>
               </div>
             </div>

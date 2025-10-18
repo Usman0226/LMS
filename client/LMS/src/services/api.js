@@ -85,6 +85,9 @@ export const assignmentsAPI = {
   
   getSubmissionById: (id) =>
     api.get(`/submissions/${id}`),
+
+  recheckPlagiarism: (submissionId) =>
+    api.post(`/submissions/${submissionId}/recheck-plagiarism`),
 };
 
 // API functions for grades

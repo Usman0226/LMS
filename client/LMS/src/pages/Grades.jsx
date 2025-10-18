@@ -114,6 +114,7 @@ export default function Grades() {
   const [selectedCourse, setSelectedCourse] = useState('all');
   const [expandedCourse, setExpandedCourse] = useState(null);
   const isTeacher = currentUser?.role === 'teacher';
+  const formatCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
   useEffect(() => {
     const fetchGrades = async () => {
@@ -146,6 +147,37 @@ export default function Grades() {
 
   const toggleCourseExpand = (courseId) => {
     setExpandedCourse(expandedCourse === courseId ? null : courseId);
+  };
+
+  const handleExportGradebook = () => {
+    if (grades.length === 0) {
+      return;
+    }
+
+    const header = ['Course Code', 'Course Name', 'Instructor', 'Assignment Title', 'Submitted', 'Points Earned', 'Points Possible', 'Weight'];
+    const rows = grades.flatMap((course) =>
+      course.assignments.map((assignment) => [
+        formatCsvValue(course.courseCode),
+        formatCsvValue(course.courseName),
+        formatCsvValue(course.instructor),
+        formatCsvValue(assignment.title),
+        formatCsvValue(assignment.submitted ? 'Yes' : 'No'),
+        formatCsvValue(assignment.submitted ? assignment.pointsEarned : ''),
+        formatCsvValue(assignment.submitted ? assignment.pointsPossible : ''),
+        formatCsvValue(`${assignment.weight}%`),
+      ].join(','))
+    );
+
+    const csvContent = [header.map(formatCsvValue).join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `gradebook_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Filter grades by selected course
@@ -184,6 +216,8 @@ export default function Grades() {
           <div className="mt-4 md:mt-0">
             <button
               type="button"
+              onClick={handleExportGradebook}
+              disabled={grades.length === 0}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               Export Gradebook

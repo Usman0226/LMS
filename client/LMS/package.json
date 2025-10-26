@@ -18,6 +18,7 @@
     "perf": "npm run build && npm run lighthouse"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@tanstack/react-query": "^5.90.5",
     "axios": "^1.6.7",

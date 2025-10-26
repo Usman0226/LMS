@@ -104,7 +104,7 @@ const mockPosts = [
     updatedAt: '2025-03-05T16:20:00Z',
     isPinned: true,
     isClosed: true,
-    tags: ['announcement', 'office-hours'],
+    tags: ['office-hours'],
     replies: []
   }
 ];
@@ -338,7 +338,6 @@ export default function Forum() {
   const availableTags = [
     { id: 'question', name: 'Question', color: 'blue' },
     { id: 'discussion', name: 'Discussion', color: 'green' },
-    { id: 'announcement', name: 'Announcement', color: 'purple' },
     { id: 'assignment', name: 'Assignment', color: 'yellow' },
     { id: 'study-group', name: 'Study Group', color: 'indigo' },
     { id: 'resource', name: 'Resource', color: 'pink' },

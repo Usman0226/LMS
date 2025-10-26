@@ -2,6 +2,7 @@ import plugin from 'tailwindcss/plugin';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -9,14 +10,40 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          DEFAULT: '#f97316',
-          light: '#fb923c',
-          dark: '#ea580c',
-          contrast: '#ffffff',
+        // Brand Colors
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9', // Base primary color
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
         },
+        // Semantic Colors
+        success: {
+          light: '#d1fae5',
+          DEFAULT: '#10b981',
+          dark: '#065f46',
+        },
+        warning: {
+          light: '#fef3c7',
+          DEFAULT: '#f59e0b',
+          dark: '#92400e',
+        },
+        error: {
+          light: '#fee2e2',
+          DEFAULT: '#ef4444',
+          dark: '#b91c1c',
+        },
+        // Surface Colors
         surface: {
-          DEFAULT: '#ffffff',
+          light: '#ffffff',
+          DEFAULT: '#f8fafc',
+          dark: '#0f172a',
           muted: '#f1f5f9',
           subtle: '#f8fafc',
         },
@@ -66,7 +93,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter var', 'Manrope', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
+        display: ['Inter', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
       },
       spacing: {
         18: '4.5rem',
@@ -79,19 +108,44 @@ export default {
         '2xl': '1.5rem',
         '3xl': '1.75rem',
         '4xl': '2rem',
+        'none': '0',
+        'sm': '0.25rem',
+        'DEFAULT': '0.375rem',
+        'md': '0.5rem',
+        'lg': '0.75rem',
+        'full': '9999px',
       },
       boxShadow: {
         soft: '0 15px 35px rgba(15, 23, 42, 0.08)',
         card: '0 24px 50px rgba(15, 23, 42, 0.12)',
         focus: '0 0 0 4px rgba(14, 165, 233, 0.20)',
+        'sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        'DEFAULT': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        'md': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        'lg': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+        'xl': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+        '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+        'inner': 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
       },
       backgroundImage: {
         'gradient-student': 'linear-gradient(135deg, #0ea5e9 0%, #38bdf8 55%, #0369a1 100%)',
         'gradient-teacher': 'linear-gradient(135deg, #f59e0b 0%, #ef4444 60%, #c026d3 100%)',
       },
+      animation: {
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'spin-slow': 'spin 3s linear infinite',
+      },
+      transitionDuration: {
+        'DEFAULT': '200ms',
+        '200': '200ms',
+        '300': '300ms',
+        '400': '400ms',
+      },
     },
   },
   plugins: [
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
     plugin(function ({ addBase, addComponents, theme }) {
       const sans = theme('fontFamily.sans');
       const fontSans = Array.isArray(sans) ? sans.join(', ') : sans;
@@ -120,18 +174,18 @@ export default {
           paddingBlock: theme('spacing.3'),
           borderRadius: theme('borderRadius.full'),
           fontWeight: theme('fontWeight.semibold'),
-          backgroundColor: theme('colors.brand.DEFAULT'),
-          color: theme('colors.text.inverse'),
+          backgroundColor: theme('colors.primary.500'),
+          color: theme('colors.primary-foreground', '#ffffff'),
           boxShadow: theme('boxShadow.soft'),
           transition: 'all 150ms ease',
         },
         '.btn-primary:hover': {
-          backgroundColor: theme('colors.brand.dark'),
+          backgroundColor: theme('colors.primary.600'),
           boxShadow: theme('boxShadow.card'),
         },
         '.btn-primary:focus-visible': {
           outline: 'none',
-          boxShadow: `0 0 0 2px ${theme('colors.brand.dark')}33, 0 0 0 4px ${theme('colors.surface.DEFAULT')}`,
+          boxShadow: `0 0 0 2px ${theme('colors.primary.400')}66, 0 0 0 4px ${theme('colors.surface.DEFAULT')}`,
         },
         '.btn-primary:disabled': {
           cursor: 'not-allowed',

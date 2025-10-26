@@ -30,7 +30,7 @@ export const register = async (req, res) => {
 
     await newUser.save();
 
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET || 'fallback_secret_key_for_development', {
       expiresIn: "7d",
     });
 
@@ -72,7 +72,7 @@ export const login = async (req, res) => {
 
     const token = jwt.sign(
       { userId: existingUser._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'fallback_secret_key_for_development',
       {
         expiresIn: "7d",
       }
@@ -103,6 +103,24 @@ export const logout = (req, res) => {
 
      res.json({ success: true, message: "Logged Out" });
 
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+
+export const sendData = async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.json({ success: false, message: "No token found" });
+    }
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key_for_development');
+    const user = await User.findById(decodedToken.userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, data: user });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }

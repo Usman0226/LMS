@@ -1,412 +1,236 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useCourses } from '../context/CourseContext';
+import { useNavigate } from 'react-router-dom';
+// import CourseCard from '../components/courses/CourseCard';
+// import EnhancedCourseCard from '../components/EnhancedCourseCard';
 import CourseCard from '../components/CourseCard';
-import { coursesAPI } from '../services/api';
+import { SkeletonGrid, SkeletonCourseCard, EmptyCourses } from '../components/ui';
 
-// Mock data for courses
-const mockCourses = [
-  {
-    id: 1,
-    code: 'CS101',
-    title: 'Introduction to Computer Science',
-    description: 'Learn the fundamentals of computer science and programming with Python.',
-    instructor: 'Dr. Sarah Johnson',
-    credits: 4,
-    status: 'Enroll Now',
-    students: 125,
-    duration: '12 weeks',
-    level: 'Beginner',
-  },
-  {
-    id: 2,
-    code: 'MATH201',
-    title: 'Linear Algebra',
-    description: 'Study vectors, matrices, and linear transformations with real-world applications.',
-    instructor: 'Prof. Michael Chen',
-    credits: 3,
-    status: 'Enroll Now',
-    students: 89,
-    duration: '10 weeks',
-    level: 'Intermediate',
-  },
-  {
-    id: 3,
-    code: 'ENG150',
-    title: 'Academic Writing',
-    description: 'Develop your academic writing skills for university-level coursework.',
-    instructor: 'Dr. Emily Wilson',
-    credits: 3,
-    status: 'Enroll Now',
-    students: 67,
-    duration: '8 weeks',
-    level: 'Beginner',
-  },
-  {
-    id: 4,
-    code: 'PHYS202',
-    title: 'Classical Mechanics',
-    description: 'Explore the fundamental principles of classical mechanics and their applications.',
-    instructor: 'Dr. Robert Taylor',
-    credits: 4,
-    status: 'Enroll Now',
-    students: 42,
-    duration: '14 weeks',
-    level: 'Advanced',
-  },
-  {
-    id: 5,
-    code: 'BIO101',
-    title: 'Introduction to Biology',
-    description: 'An overview of biological concepts including cell biology, genetics, and evolution.',
-    instructor: 'Dr. Lisa Wong',
-    credits: 3,
-    status: 'Enroll Now',
-    students: 113,
-    duration: '12 weeks',
-    level: 'Beginner',
-  },
-  {
-    id: 6,
-    code: 'CHEM201',
-    title: 'Organic Chemistry',
-    description: 'Study the structure, properties, and reactions of organic compounds.',
-    instructor: 'Dr. James Wilson',
-    credits: 4,
-    status: 'Enroll Now',
-    students: 78,
-    duration: '16 weeks',
-    level: 'Intermediate',
-  },
-];
+const Courses = () => {
+  const { currentUser, isStudent } = useAuth();
+  const { 
+    courses, 
+    loading, 
+    error,
+    fetchCourses,
+    enrollInCourse
+  } = useCourses();
+  const navigate = useNavigate();
 
-// Mock enrolled courses for the current user
-const mockEnrolledCourses = [1, 3]; // IDs of enrolled courses
+  // Track enrollment state for each course
+  const [enrollingCourses, setEnrollingCourses] = useState(new Set());
+  const [enrolledCourses, setEnrolledCourses] = useState(new Set());
 
-export default function Courses() {
-  const { currentUser } = useAuth();
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    level: 'all',
-    category: 'all',
-    sortBy: 'recent',
-  });
-  const [showEnrolledOnly, setShowEnrolledOnly] = useState(false);
+  // Initialize enrolled courses based on user's enrolled courses or course students
+  useEffect(() => {
+    if (courses.length > 0 && currentUser) {
+      const enrolled = new Set();
+      courses.forEach(course => {
+        // Check if user is in the students array or if course is marked as enrolled
+        if (
+          (course.students && course.students.includes(currentUser._id)) ||
+          course.enrollmentStatus === 'enrolled' ||
+          enrolledCourses.has(course._id)
+        ) {
+          enrolled.add(course._id);
+        }
+      });
+      setEnrolledCourses(enrolled);
+      console.log('Initialized enrolled courses:', Array.from(enrolled));
+    }
+  }, [courses, currentUser, isStudent]);
+
+  // Debug current user and enrollment state
+  useEffect(() => {
+    console.log('Current user:', currentUser);
+    console.log('User role:', currentUser?.role);
+    console.log('Is student:', isStudent);
+    console.log('Enrolled courses:', enrolledCourses);
+    console.log('Enrolling courses:', enrollingCourses);
+  }, [currentUser, enrolledCourses, enrollingCourses, isStudent]);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    let isMounted = true;
+
+    const loadCourses = async () => {
       try {
-        setLoading(true);
-        console.log('Courses - Starting data fetch for user:', currentUser);
-
-        // Use mock data for now to prevent crashes
-        setTimeout(() => {
-          // Mark enrolled courses
-          const coursesWithEnrollment = mockCourses.map(course => ({
-            ...course,
-            isEnrolled: mockEnrolledCourses.includes(course.id),
-          }));
-          
-          setCourses(coursesWithEnrollment);
-          setLoading(false);
-          console.log('Courses - Mock data loaded successfully');
-        }, 500);
-
-        // Uncomment below to re-enable API calls
-        /*
-        // Fetch all courses
-        const response = await coursesAPI.getAllCourses();
-        const allCourses = response.data.data || [];
-
-        // If user is logged in, fetch their enrolled courses
-        if (currentUser) {
-          try {
-            const enrolledResponse = await coursesAPI.getEnrolledCourses();
-            const enrolledCourses = enrolledResponse.data.data || [];
-            const enrolledIds = enrolledCourses.map(course => course._id);
-
-            // Mark enrolled courses
-            const coursesWithEnrollment = allCourses.map(course => ({
-              ...course,
-              isEnrolled: enrolledIds.includes(course._id),
-            }));
-
-            setCourses(coursesWithEnrollment);
-          } catch (enrolledError) {
-            console.log('Error fetching enrolled courses:', enrolledError);
-            // Still show all courses even if enrollment check fails
-            setCourses(allCourses.map(course => ({ ...course, isEnrolled: false })));
-          }
-        } else {
-          // Not logged in, show all courses without enrollment status
-          setCourses(allCourses.map(course => ({ ...course, isEnrolled: false })));
-        }
-
-        setLoading(false);
-        */
+        console.log('Fetching courses...');
+        await fetchCourses();
+        console.log('Courses fetched successfully');
       } catch (error) {
-        console.error('Error in Courses fetchCourses:', error);
-        // Fallback to mock data on any error
-        setTimeout(() => {
-          const coursesWithEnrollment = mockCourses.map(course => ({
-            ...course,
-            isEnrolled: mockEnrolledCourses.includes(course.id),
-          }));
-          setCourses(coursesWithEnrollment);
-          setLoading(false);
-        }, 500);
+        console.error('Error in Courses component:', error);
       }
     };
 
-    fetchCourses();
-  }, [currentUser]);
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const toggleEnrolledOnly = () => {
-    setShowEnrolledOnly(!showEnrolledOnly);
-  };
-
-  const handleCreateCourse = () => {
-    if (!currentUser) {
-      alert('Please login to create courses');
-      return;
+    // Only fetch if we don't have any courses yet
+    if (courses.length === 0) {
+      loadCourses();
+    } else {
+      // If we already have courses, make sure loading is set to false
+      if (loading) {
+        const timer = setTimeout(() => {
+          if (isMounted) {
+            // This will be handled by the context
+          }
+        }, 0);
+        return () => clearTimeout(timer);
+      }
     }
 
-    if (!isTeacher) {
-      alert('Only teachers can create courses');
-      return;
-    }
-
-    // Redirect to course creation page or open modal
-    // For now, we'll just show an alert
-    alert('Course creation functionality will be implemented soon!');
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchCourses, courses.length, loading]);
 
   const handleEnroll = async (courseId) => {
+    // Prevent multiple clicks
+    if (enrollingCourses.has(courseId) || enrolledCourses.has(courseId)) {
+      console.log('Enrollment already in progress or user already enrolled');
+      return;
+    }
+
+    console.log('Starting enrollment for course:', courseId);
+    
+    // Show loading state
+    setEnrollingCourses(prev => new Set([...prev, courseId]));
+
     try {
-      if (!currentUser) {
-        alert('Please login to enroll in courses');
+      const result = await enrollInCourse(courseId);
+      console.log('Enrollment result:', result);
+
+      // Handle requires authentication
+      if (result.requiresAuth) {
+        console.log('Authentication required, redirecting to login');
         return;
       }
 
-      console.log('Enrolling in course:', courseId);
-
-      // Call API to enroll
-      await coursesAPI.enrollInCourse(courseId);
-
-      // Update local state
-      setCourses(courses.map(course =>
-        course.id === courseId || course._id === courseId
-          ? { ...course, isEnrolled: true, status: 'Enrolled' }
-          : course
-      ));
-
-      alert('Successfully enrolled in course! Check "My Courses" to view your enrolled courses.');
+      if (result.success) {
+        // Update enrolled courses state
+        setEnrolledCourses(prev => {
+          const newSet = new Set([...prev, courseId]);
+          console.log('Updated enrolled courses:', Array.from(newSet));
+          return newSet;
+        });
+        
+        // Update the course in the courses list
+        setCourses(prevCourses => 
+          prevCourses.map(course => 
+            course._id === courseId 
+              ? { 
+                  ...course, 
+                  enrollmentStatus: 'enrolled',
+                  students: [...(course.students || []), currentUser?._id].filter(Boolean)
+                } 
+              : course
+          )
+        );
+        
+        console.log('Successfully enrolled in course:', courseId);
+        // You can replace this with a toast notification
+        alert('Successfully enrolled in the course!');
+      } else {
+        console.error('Enrollment failed:', result.error);
+        alert(`Enrollment failed: ${result.error}`);
+      }
     } catch (error) {
-      console.error('Error enrolling in course:', error);
-      alert(error.response?.data?.message || 'Failed to enroll in course. Please try again.');
+      console.error('Enrollment error:', error);
+      alert('An unexpected error occurred. Please try again.');
+    } finally {
+      // Clear loading state
+      setEnrollingCourses(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(courseId);
+        console.log('Cleared loading state for course:', courseId);
+        return newSet;
+      });
     }
   };
 
-  // Filter and sort courses based on search, filters, and enrolled status
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesLevel = filters.level === 'all' || course.level.toLowerCase() === filters.level;
-    const matchesEnrolled = !showEnrolledOnly || course.isEnrolled;
-    
-    return matchesSearch && matchesLevel && matchesEnrolled;
-  }).sort((a, b) => {
-    switch (filters.sortBy) {
-      case 'name':
-        return a.title.localeCompare(b.title);
-      case 'recent':
-        return b.id - a.id; // Assuming higher IDs are more recent
-      case 'popular':
-        return b.students - a.students;
-      default:
-        return 0;
-    }
-  });
-
-  const isTeacher = currentUser?.role === 'teacher';
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isTeacher ? 'Manage Courses' : 'Browse Courses'}
-          </h1>
-          <p className="mt-2 text-gray-600">
-            {isTeacher 
-              ? 'Create and manage your courses' 
-              : 'Find the perfect course to enhance your skills'}
-          </p>
+  if (loading && courses.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <div className="h-8 bg-gray-200 rounded w-64 animate-pulse mb-2"></div>
+          <div className="h-5 bg-gray-200 rounded w-96 animate-pulse"></div>
         </div>
-        
-        {isTeacher && (
-          <div className="mt-4 md:mt-0">
-            <button
-              type="button"
-              onClick={handleCreateCourse}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            >
-              Create New Course
-            </button>
-          </div>
-        )}
+        <SkeletonGrid items={6} ItemSkeleton={SkeletonCourseCard} />
       </div>
+    );
+  }
 
-      {/* Search and Filter Bar */}
-      <div className="bg-white shadow rounded-lg p-4 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-2">
-            <label htmlFor="search" className="sr-only">
-              Search courses
-            </label>
-            <div className="relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                name="search"
-                id="search"
-                className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                placeholder="Search courses..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-red-50 border-l-4 border-red-400 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">
+                {error}
+              </p>
             </div>
           </div>
-          
-          <div>
-            <label htmlFor="level" className="sr-only">
-              Level
-            </label>
-            <select
-              id="level"
-              name="level"
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
-              value={filters.level}
-              onChange={handleFilterChange}
-            >
-              <option value="all">All Levels</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
-          </div>
-          
-          <div>
-            <label htmlFor="sortBy" className="sr-only">
-              Sort by
-            </label>
-            <select
-              id="sortBy"
-              name="sortBy"
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
-              value={filters.sortBy}
-              onChange={handleFilterChange}
-            >
-              <option value="recent">Most Recent</option>
-              <option value="name">Name (A-Z)</option>
-              <option value="popular">Most Popular</option>
-            </select>
-          </div>
         </div>
-        
-        {!isTeacher && (
-          <div className="mt-4 flex items-center">
-            <input
-              id="enrolled-only"
-              name="enrolled-only"
-              type="checkbox"
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              checked={showEnrolledOnly}
-              onChange={toggleEnrolledOnly}
-            />
-            <label htmlFor="enrolled-only" className="ml-2 block text-sm text-gray-700">
-              Show only my enrolled courses
-            </label>
-          </div>
-        )}
+      </div>
+    );
+  }
+
+  console.log('Rendering Courses component', { 
+    loading, 
+    coursesCount: courses?.length, 
+    courses,
+    error 
+  });
+
+  return (
+    <div className="container mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl  font-bold text-gray-900 mb-2">Available Courses</h1>
+        <p className="text-gray-600 dark:text-gray-500">Browse and enroll in our courses</p>
       </div>
 
-      {/* Course Grid */}
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+      {loading && courses.length === 0 ? (
+        <SkeletonGrid items={6} ItemSkeleton={SkeletonCourseCard} />
+      ) : error ? (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
         </div>
-      ) : filteredCourses.length > 0 ? (
+      ) : courses.length === 0 ? (
+        <EmptyCourses
+          isTeacher={!isStudent}
+          onCreateCourse={() => navigate('/courses/create')}
+          onBrowseCourses={() => navigate('/courses')}
+        />
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((course) => (
-            <CourseCard 
-              key={course.id} 
-              course={course} 
-              onEnroll={handleEnroll}
-              isStudent={!isTeacher}
+          {courses.map((course) => (
+            <CourseCard
+              key={course._id}
+              course={course}
+              onEnroll={() => handleEnroll(course._id)}
+              isStudent={isStudent}
+              isEnrolled={enrolledCourses.has(course._id)}
+              isLoading={enrollingCourses.has(course._id)}
             />
           ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h3 className="mt-2 text-lg font-medium text-gray-900">No courses found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {showEnrolledOnly 
-              ? "You haven't enrolled in any courses yet." 
-              : "No courses match your search criteria. Try adjusting your filters."}
-          </p>
-          <div className="mt-6">
-            <button
-              type="button"
-              onClick={() => {
-                setSearchTerm('');
-                setShowEnrolledOnly(false);
-                setFilters({
-                  level: 'all',
-                  category: 'all',
-                  sortBy: 'recent',
-                });
-              }}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            >
-              {showEnrolledOnly ? 'Browse All Courses' : 'Clear Filters'}
-            </button>
-          </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default Courses;

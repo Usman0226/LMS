@@ -54,22 +54,47 @@ export const coursesAPI = {
   getEnrolledCourses: () =>
     api.get('/enrollments/my-courses'),
   
+  // Get courses taught by the current teacher
+  getTeacherCourses: () =>
+    api.get('/courses/teacher/me'),
+    
   getEnrolledStudents: (courseId) =>
     api.get(`/enrollments/${courseId}/students`),
 };
 
 // API functions for assignments
 export const assignmentsAPI = {
-  getAssignments: (courseId) =>
-    courseId
-      ? api.get(`/assignments/${courseId}`)
-      : api.get('/assignments'),
+  // Get all assignments for current user's courses
+  getAssignments: async () => {
+    try {
+      const response = await api.get('/assignments');
+      console.log('Assignments API response:', response);
+
+      // Handle backend response format: { success: true, data: assignments }
+      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        return response.data;
+      }
+
+      // Fallback for other formats
+      if (Array.isArray(response.data)) {
+        return { data: response.data };
+      }
+
+      return { data: [] };
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      throw error;
+    }
+  },
+  
+  // Get assignments for a specific course
+  getCourseAssignments: (courseId) => api.get(`/assignments/${courseId}`),
   
   getAssignmentById: (id) =>
     api.get(`/assignments/${id}`),
   
   createAssignment: (assignmentData) =>
-    api.post('/assignments/create', assignmentData),
+    api.post('/assignments', assignmentData),
   
   updateAssignment: (id, assignmentData) =>
     api.put(`/assignments/${id}`, assignmentData),

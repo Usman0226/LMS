@@ -18,20 +18,24 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Prevent multiple submissions
+    
     setError('');
-    
-    // We don't need setLoading(true) here, the context handles it
 
-    // ✅ Pass all three values to the context function
-    const result = await login(email, password, role);
+    try {
+      // Pass all three values to the context function
+      const result = await login(email, password, role);
 
-    if (result?.success) {
-      navigate('/dashboard');
-    } else {
-      setError(result?.message || 'Failed to log in. Please check your credentials.');
+      if (result?.success) {
+        navigate('/dashboard', { replace: true }); // Use replace to prevent going back to login
+        return;
+      } else {
+        setError(result?.message || 'Failed to log in. Please check your credentials.');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('An unexpected error occurred. Please try again.');
     }
-    
-    // We don't need setLoading(false) here, the context handles it
   };
 
   return (
@@ -119,7 +123,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-70"
+            className="btn-primary w-full justify-center bg-primary-500 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? 'Signing In…' : 'Login'}
           </button>

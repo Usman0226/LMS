@@ -1,14 +1,38 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useWebSocket } from '../context/WebSocketContext';
+import { BellIcon } from '@heroicons/react/24/outline';
 
 export default function Navbar() {
   const { currentUser, logout, isAuthenticated } = useAuth();
+  const { notifications, markNotificationAsRead } = useWebSocket();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const NotificationBell = () => (
+    <div className="relative">
+      <button
+        onClick={() => {
+          // Mark all as read when bell is clicked
+          notifications.filter(n => !n.read).forEach(n => markNotificationAsRead(n.id));
+        }}
+        className="bg-white p-2 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 relative"
+      >
+        <BellIcon className="h-6 w-6" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+    </div>
+  );
 
   return (
     <nav className="bg-white shadow-lg">
@@ -62,6 +86,12 @@ export default function Navbar() {
                       Create Course
                     </Link>
                   )}
+                  <Link
+                    to="/messages"
+                    className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Messages
+                  </Link>
                 </>
               ) : (
                 // Unauthenticated user navigation
@@ -74,13 +104,15 @@ export default function Navbar() {
                   </Link>
                 </>
               )}
-            </div>
           </div>
 
           <div className="hidden sm:ml-4 sm:flex sm:items-center sm:space-x-4">
             {isAuthenticated ? (
               // Authenticated user menu
               <div className="flex items-center space-x-4">
+                {/* Notification Bell */}
+                <NotificationBell />
+
                 <span className="text-sm text-gray-700">
                   Welcome, {currentUser?.name?.split(' ')[0] || 'User'}
                 </span>

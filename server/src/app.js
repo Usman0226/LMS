@@ -10,6 +10,7 @@ import assignmentRouter from '../Routes/assignment.routes.js';
 import submissionRouter from '../Routes/submission.routes.js';
 import gradeRouter from '../Routes/grade.routes.js';
 import userRouter from '../Routes/user.routes.js';
+import messagingRouter from '../Routes/messaging.routes.js';
 
 //middleware
 import authMiddleware from "../middlewares/authMiddleware.js"
@@ -31,6 +32,7 @@ app.use('/api/assignments', assignmentRouter);
 app.use('/api/submissions', submissionRouter);
 app.use('/api/grades', gradeRouter);
 app.use('/api/users', userRouter);
+app.use('/api/messaging', messagingRouter);
 
 app.get('/',(req,res)=>{
     res.send("Welcome to LMS Backend")

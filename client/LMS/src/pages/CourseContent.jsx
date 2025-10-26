@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCourseContent } from '../../context/CourseContentContext';
-import { useCourses } from '../../context/CourseContext';
-import CourseSidebar from '../../components/courseContent/CourseSidebar';
-import LessonViewer from '../../components/courseContent/LessonViewer';
+import { useCourseContent } from '../context/CourseContentContext';
+import { useCourses } from '../context/CourseContext';
+import CourseSidebar from '../components/courseContent/CourseSidebar';
+import LessonViewer from '../components/courseContent/LessonViewer';
 
 const CourseContentPage = () => {
   const { courseId } = useParams();

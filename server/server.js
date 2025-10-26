@@ -26,7 +26,12 @@ const server = createServer(app);
 // Setup Socket.IO
 const io = new Server(server, {
     cors: {
-        origin: ['http://localhost:5173', 'http://localhost:3000'],
+        origin: [
+            'http://localhost:5173',
+            'http://localhost:3000',
+            ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+            ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [])
+        ],
         methods: ['GET', 'POST'],
         credentials: true
     }
@@ -54,5 +59,9 @@ io.on('connection', (socket) => {
 export { io };
 
 server.listen(port, ()=>{
-    console.log(`Server is at http://localhost:${port}`)
+    console.log(`Server is running on port ${port}`)
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
+    if (process.env.NODE_ENV === 'production') {
+        console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'Not configured'}`)
+    }
 })

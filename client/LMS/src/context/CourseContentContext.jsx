@@ -83,7 +83,7 @@ export const CourseContentProvider = ({ children }) => {
       let errorMessage = 'Failed to load course content. Please try again later.';
 
       if (err.code === 'ERR_NETWORK') {
-        errorMessage = 'Could not connect to the server. Please make sure the backend server is running on http://localhost:3000';
+        errorMessage = `Could not connect to the server. Please make sure the backend server is running on ${import.meta.env.VITE_API_URL || 'http://localhost:3000'}`;
       } else if (err.response) {
         switch (err.response.status) {
           case 401:

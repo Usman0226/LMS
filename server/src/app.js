@@ -17,7 +17,18 @@ import authMiddleware from "../middlewares/authMiddleware.js"
 
 const app = express()
 
-const allowedOrigins = ['http://localhost:5173','http://localhost:3000','http://localhost:5174','http://localhost:5175','http://localhost:5176','http://localhost:5177']
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'http://localhost:5177',
+  'https://lms-red-iota.vercel.app',
+  // Add production origins from environment variables
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [])
+]
 
 app.use(express.json())
 app.use(cookieParser())

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>testing</title>
+    <style>
+        * {
+            padding: 20px;
+        }
+
+        #first {
+            position: absolute;
+            width: 30vw;
+            height: 30vh;
+            background-color: #ff9831;
+            border-radius: 50%;
+            filter: blur(10px);
+            animation-name: circle1;
+    animation-duration: 3s;
+    animation-timing-function: ease-in;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+        }
+
+        #second {
+            width: 40vw;
+            height: 30vh;
+            background-color: #fe330a;
+            border-radius: 50%;
+            filter: blur(50px);
+           animation-name: circle2;
+    animation-duration: 3s;
+    animation-timing-function: ease-in;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+        }
+
+        @keyframes anime {
+            from {
+                transform: translate(10%, -10%);
+
+            }
+
+            to {
+                transform: translate(-10%, 10%);
+            }
+        }
+
+        @keyframes anime2 {
+            from {
+                transform: translate(10%, -10%);
+            }
+
+            to {
+                transform: translate(-10%, 10%);
+            }
+        }
+
+        
+@keyframes circle1 {
+    from{
+        transform: translate(-5%,10%) skew(0deg)
+    }
+    to{
+        transform: translate(5%,-6%) skew(-10deg)
+    }
+}
+
+@keyframes circle2 {
+    from{
+        transform: translate(-5%,10%);
+    }
+    to{
+        transform: translate(5%,-6%);
+    }
+}
+    </style>
+</head>
+
+<body>
+    <div id="first"></div>
+    <div id="second"></div>
+</body>
+
+</html>

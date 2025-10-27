@@ -96,6 +96,8 @@ export default {
         sans: ['Inter', 'sans-serif'],
         display: ['Inter', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
+        montserrat: ['"Montserrat"', "sans-serif"],
+        poppins: ['"Poppins"', "sans-serif"],
       },
       spacing: {
         18: '4.5rem',
@@ -267,3 +269,7 @@ export default {
     }),
   ],
 };
+
+
+
+

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // Correctly imports the hook
 import Ball from '../components/Ball.jsx';
+import Explore from '../components/Explore.jsx';
 const tabBase = 'px-4 py-2 text-sm font-semibold rounded-full transition';
 const tabActive = 'bg-primary-500 text-white shadow-lg shadow-primary-500/30';
 const tabInactive = 'text-slate-500 hover:text-primary-500';
@@ -39,39 +40,36 @@ export default function Login() {
   };
 
   return (
-    <div className='min-h-screen w-full bg-gradient-to-br from-orange-50 via-white to-orange-100'>
-      <div className="flex absolute items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full shadow-lg mt-3 ml-3 sm:mt-4 sm:ml-4">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon" className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-white">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5">
-          </path>
-        </svg>
+    <div className="min-h-screen w-full bg-gradient-to-br from-orange-50 via-white to-orange-100 flex flex-col sm:flex-row items-center justify-center p-4 sm:p-6 overflow-x-hidden">
+      {/* Logo */}
+      <div className="absolute top-4 left-4 sm:left-6 z-10">
+        <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true" className="h-6 w-6 sm:h-8 sm:w-8 text-white">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5">
+            </path>
+          </svg>
+        </div>
       </div>
+
       <Ball />
-{/* 
-      <div className="bg-orange-50/90 blur-sm absolute top-1/3 left-1/4 transform -translate-x-1/2 -translate-y-1/2 ml-10  gap-6 ">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-montserrat font-bold text-slate-900 z-10">Transform <span className='text-orange-600'>Learning</span></h1>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-montserrat font-bold text-slate-900 z-10">with simple LMS</h1>
-      </div> */}
 
+      {/* Hero Section - Top on mobile, Left on desktop */}
+      <div className="w-full sm:w-1/2 flex flex-col items-center sm:items-start sm:pl-10 lg:pl-20 xl:pl-32 mb-8 sm:mb-0">
+        <div className="text-center sm:text-left max-w-xl">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-montserrat font-bold text-slate-900">
+            Transform <span className="text-orange-600">Learning</span>
+          </h1>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-montserrat font-bold text-slate-900 mb-6 sm:mb-8">
+            with simple LMS
+          </h1>
+          <div className="flex justify-center sm:justify-start">
+            <Explore />
+          </div>
+        </div>
+      </div>
 
-      <div className="absolute top-1/4 sm:top-1/3 left-4 sm:left-1/4 transform -translate-x-1/2 sm:-translate-x-1/2 -translate-y-1/2 ml-4 sm:ml-10">
-
-  {/* <div className="absolute inset-0 bg-orange-50/40 backdrop-blur-lg rounded-lg"></div> */}
-
-  <div className="relative p-6 sm:p-8 lg:p-10">
-    <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-montserrat font-bold text-slate-900">
-      Transform <span className="text-orange-600">Learning</span>
-    </h1>
-    <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-montserrat font-bold text-slate-900">
-      with simple LMS
-    </h1>
-  </div>
-</div>
-
-      
-      <div className="min-h-screen w-full bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center sm:justify-end px-4 py-6">
-        
-        <div className="rightSide w-full sm:w-96 lg:w-[28rem] xl:w-[32rem] max-w-xl rounded-3xl border border-orange-100 bg-white/95 px-6 py-8 sm:px-8 sm:py-12 shadow-[0_35px_70px_rgba(249,115,22,0.14)] z-50">
+      {/* Login Form - Bottom on mobile, Right on desktop */}
+      <div className="w-full sm:w-96 lg:w-[28rem] xl:w-[32rem] bg-white/95 rounded-3xl border border-orange-100 p-6 sm:p-8 shadow-[0_35px_70px_rgba(249,115,22,0.14)] z-50">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 z-90">
             {/* ... (Your header, no changes) ... */}
             <div className="flex flex-col gap-2">
@@ -169,9 +167,6 @@ export default function Login() {
           </form>
         </div>
       </div>
-      
-    </div>
-    
-
+  
   );
 }
